@@ -10,35 +10,29 @@ public class OpportunityTriggerHandler {
     }
     
     public static void handleAfterUpdate(List<Opportunity> triggerNew, Map<Id, Opportunity> triggerOldMap) {
-    // Create a map to store the number of won deals for each user
-    Map<Id, Integer> userIdToDealsWon = new Map<Id, Integer>();
-    
-    for (Opportunity opp : triggerNew) {
-        // Check if the opportunity's stage is 'Closed Won'
-        if (opp.StageName == 'Closed Won') 
+        incrementDealsWonCounter(triggerNew, triggerOldMap);
+    }
+
+    public static void incrementDealsWonCounter(List<Opportunity> triggerNew, Map<Id, Opportunity> triggerOldMap) {
+        Set<Id> userIdsToUpdate = new Set<Id>();
         
-        {
-            // Increment the user's deal count in the map
-            if (userIdToDealsWon.containsKey(opp.OwnerId)) {
-                userIdToDealsWon.put(opp.OwnerId, userIdToDealsWon.get(opp.OwnerId) + 1);
-            } else {
-                userIdToDealsWon.put(opp.OwnerId, 1);
+        for (Opportunity opp : triggerNew) {
+            if (opp.StageName == 'Closed Won') {
+                userIdsToUpdate.add(opp.OwnerId);
             }
         }
-    }
     
-    // Query the users whose role is 'Sales' and need to be updated
-    List<User> salesUsers = [SELECT Id, Deals_Won__c FROM User WHERE UserRole.Name = 'Sales' AND Id IN :userIdToDealsWon.keySet()];
+        List<User> salesUsers = [SELECT Id, Deals_Won__c FROM User WHERE UserRole.Name LIKE '%Sales%' AND Id IN :userIdsToUpdate];
     
-    // Update the Deals_Won__c field for the relevant users
-    for (User user : salesUsers) {
-        Integer dealsWon = userIdToDealsWon.get(user.Id);
-        if (dealsWon != null) {
-            user.Deals_Won__c += dealsWon;
+        for (User user : salesUsers) {
+            if (user.Deals_Won__c == null) {
+                user.Deals_Won__c = 1;
+            } else {
+                user.Deals_Won__c += 1;
+            }
         }
-    }
     
-        // Update the User records
         update salesUsers;
     }
+    
 }
