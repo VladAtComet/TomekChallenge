@@ -14,47 +14,46 @@ public with sharing class OpportunityTriggerHandler {
     }
 
     public static void incrementDealsWonCounter(List<Opportunity> triggerNew, Map<Id, Opportunity> triggerOldMap) {
+        Map<Id, Integer> userOpportunityCount = countUserOpportunities(triggerNew, triggerOldMap);
+    
+        if (!userOpportunityCount.isEmpty()) {
+            List<User> allSalesUsers = querySalesUsers(userOpportunityCount.keySet());
+    
+            updateUsersWithOpportunityCount(allSalesUsers, userOpportunityCount);
+        }
+    }
+// incrementDealsWonCounter() helper methods 
+    private static Map<Id, Integer> countUserOpportunities(List<Opportunity> triggerNew, Map<Id, Opportunity> triggerOldMap) {
         Map<Id, Integer> userOpportunityCount = new Map<Id, Integer>();
-        
+    
         for (Opportunity opp : triggerNew) {
-            if (opp.StageName != triggerOldMap.get(opp.Id).StageName &&
-                (opp.StageName == 'Closed Won' || opp.Probability == 100)) {
+            if (isOpportunityWon()) {
                 Id oppOwnerId = opp.OwnerId;
-                if (!userOpportunityCount.containsKey(ownerId)) {
+                if (!userOpportunityCount.containsKey(oppOwnerId)) {
                     userOpportunityCount.put(oppOwnerId, 1);
                 } else {
                     userOpportunityCount.put(oppOwnerId, userOpportunityCount.get(oppOwnerId) + 1);
                 }
             }
         }
-        
-        if (canQueryUsersAndRoles()) {
-            List<User> allSalesUsers = [SELECT Id, Deals_Won__c FROM User WHERE UserRole.Name LIKE '%Sales%' AND Id IN :userOpportunityCount.keySet()];
-            List<User> salesUsersToUpdate = new List<User>();
-
-            for (User user : allSalesUsers) {
-                if (user.Deals_Won__c == null) {
-                    user.Deals_Won__c = userOpportunityCount.get(user.Id);
-                } else {
-                    user.Deals_Won__c += userOpportunityCount.get(user.Id);
-                }
-                salesUsersToUpdate.add(opp.OwnerId);
-            }
-
-            if (!salesUsersToUpdate.isEmpty()) {
-                update salesUsersToUpdate;
-            }
-
-        } else catch {
-            // Handle the case where you can't query users and roles
-            System.debug('Permission issue: Unable to query users and roles.');
-        }
+    
+        return userOpportunityCount;
     }
 
-    private static Boolean canQueryUsersAndRoles() {
-        // Implement your permission checks here, e.g., based on profile or permission sets
-        // Return true if the user has permission, false otherwise
-        return true; // Modify this based on your permission checks
+    private static boolean isOpportunityWon(Opportunity opp, Map<Id, Opportunity> triggerOldMap) {
+        return opp.StageName != triggerOldMap.get(opp.Id).StageName && opp.StageName == 'Closed Won';
     }
     
+    private static List<User> querySalesUsers(Set<Id> userIDs) {
+        return [SELECT Id, Deals_Won__c FROM User WHERE UserRole.Name LIKE '%Sales%' AND Id IN :userIDs WITH SECURITY_ENFORCED];
+    }
+    
+    private static void updateUsersWithOpportunityCount(List<User> salesUsers, Map<Id, Integer> opportunityCountMap) {
+        for (User user : salesUsers) {
+            user.Deals_Won__c = user.Deals_Won__c != null ? user.Deals_Won__c + opportunityCountMap.get(user.Id) : opportunityCountMap.get(user.Id);
+        }
+    
+        update salesUsers;
+    }
+// incrementDealsWonCounter() helper methods  
 }

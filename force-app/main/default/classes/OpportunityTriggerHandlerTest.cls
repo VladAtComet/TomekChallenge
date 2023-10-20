@@ -1,18 +1,18 @@
 @isTest
 public class OpportunityTriggerHandlerTest {
-    private static boolean recordsCreated = false;
     private static User testUser;
     private static Opportunity testOpportunity;
     private static UserRole salesRole;
 
+    @testSetup
     static void testSetup() {
         List<UserRole> existingSalesRole = [SELECT Id FROM UserRole WHERE Name = 'Sales Role' LIMIT 1];
 
-        if (existingSalesRoles.isEmpty()) {
+        if (existingSalesRole.isEmpty()) {
             salesRole = new UserRole(Name = 'Sales Role');
             insert salesRole;
         } else {
-            salesRole = existingSalesRoles[0];
+            salesRole = existingSalesRole[0];
         }
 
         testUser = new User(
@@ -40,21 +40,19 @@ public class OpportunityTriggerHandlerTest {
         System.RunAs(testUser) { 
             insert testOpportunity;
         }
-        recordsCreated = true;
     }
 
     @isTest
     static void testIncrementDealsWonCounter() {
-        if (!recordsCreated) {
-            createTestRecords();
-        }
+
+        testOpportunity = [SELECT ID FROM Opportunity LIMIT 1];
 
         Test.startTest();
         testOpportunity.StageName = 'Closed Won';
         update testOpportunity;
         Test.stopTest();
 
-        User updatedUser = [SELECT Deals_Won__c FROM User WHERE Id = :testUser.Id];
+        User updatedUser = [SELECT Deals_Won__c FROM User WHERE Email = 'testuser@example.com'];
         System.assertEquals(1, updatedUser.Deals_Won__c, 'Deals_Won__c should be incremented to 1');
     }
 
