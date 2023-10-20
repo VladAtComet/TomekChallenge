@@ -44,7 +44,6 @@ public class OpportunityTriggerHandlerTest {
 
     @isTest
     static void testIncrementDealsWonCounter() {
-
         testOpportunity = [SELECT ID FROM Opportunity LIMIT 1];
 
         Test.startTest();
@@ -52,8 +51,23 @@ public class OpportunityTriggerHandlerTest {
         update testOpportunity;
         Test.stopTest();
 
-        User updatedUser = [SELECT Deals_Won__c FROM User WHERE Email = 'testuser@example.com'];
-        System.assertEquals(1, updatedUser.Deals_Won__c, 'Deals_Won__c should be incremented to 1');
+        testUser = [SELECT Deals_Won__c FROM User WHERE Email = 'testuser@example.com'];
+        System.assertEquals(1, testUser.Deals_Won__c, 'Deals_Won__c should be incremented to 1');
+    }
+
+    @isTest
+    static void testUpdateOpportunityFieldOtherThanStage() {
+
+        testOpportunity = [SELECT ID FROM Opportunity LIMIT 1];
+
+        Test.startTest();
+        testOpportunity.StageName = 'Closed Won';
+        testOpportunity.Name = 'new';
+        update testOpportunity;
+        Test.stopTest();
+
+        testUser = [SELECT Deals_Won__c FROM User WHERE Email = 'testuser@example.com'];
+        System.assertEquals(1, testUser.Deals_Won__c, 'Deals_Won__c should be 1');
     }
 
 }
