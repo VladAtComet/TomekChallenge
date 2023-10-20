@@ -43,7 +43,7 @@ public class OpportunityTriggerHandlerTest {
     }
 
     @isTest
-    static void testIncrementDealsWonCounter() {
+    static void testIncreaseDealsWonCounter() {
         testOpportunity = [SELECT ID FROM Opportunity LIMIT 1];
 
         Test.startTest();
@@ -68,6 +68,22 @@ public class OpportunityTriggerHandlerTest {
 
         testUser = [SELECT Deals_Won__c FROM User WHERE Email = 'testuser@example.com'];
         System.assertEquals(1, testUser.Deals_Won__c, 'Deals_Won__c should be 1');
+    }
+
+    @isTest
+    static void testDecreaseDealsWonCounter() {
+
+        testOpportunity = [SELECT ID FROM Opportunity LIMIT 1];
+
+        Test.startTest();
+        testOpportunity.StageName = 'Closed Won';
+        update testOpportunity;
+        testOpportunity.StageName = 'Needs Analysis';
+        update testOpportunity;
+        Test.stopTest();
+
+        testUser = [SELECT Deals_Won__c FROM User WHERE Email = 'testuser@example.com'];
+        System.assertEquals(1, testUser.Deals_Won__c, 'Deals_Won__c should be 0');
     }
 
 }
