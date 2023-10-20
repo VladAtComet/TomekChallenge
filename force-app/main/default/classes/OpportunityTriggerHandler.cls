@@ -75,6 +75,6 @@ public with sharing class OpportunityTriggerHandler {
         }
         update salesUsers;
     }
-// General helper methods 
+// General helper methods end
 
 }
