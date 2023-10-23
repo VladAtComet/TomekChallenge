@@ -1,13 +1,13 @@
 public with sharing class OpportunityTriggerHandler {
     
-    // public static void handleBeforeInsert(List<Opportunity> triggerNew) {
-    // }
+    public static void handleBeforeInsert(List<Opportunity> triggerNew) {
+    }
     
-    // public static void handleAfterInsert(List<Opportunity> triggerNew) {
-    // }
+    public static void handleAfterInsert(List<Opportunity> triggerNew) {
+    }
     
-    // public static void handleBeforeUpdate(List<Opportunity> triggerNew, Map<Id,Opportunity> triggerOldMap) {
-    // }
+    public static void handleBeforeUpdate(List<Opportunity> triggerNew, Map<Id,Opportunity> triggerOldMap) {
+    }
     
     public static void handleAfterUpdate(List<Opportunity> triggerNew, Map<Id, Opportunity> triggerOldMap) {
         try {
