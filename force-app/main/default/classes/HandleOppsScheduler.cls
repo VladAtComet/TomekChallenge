@@ -5,8 +5,10 @@ public with sharing class HandleOppsScheduler implements Schedulable {
         List<Opportunity> opportunitiesToUpdate = new List<Opportunity>();
 
         for (Opportunity opp : opportunitiesToUpdate) {
-            opp.StageName = 'Closed Lost';
-            opportunitiesToUpdate.add(opp);
+            if (Schema.sObjectType.Opportunity.isUpdateable()) {
+                opp.StageName = 'Closed Lost';
+                opportunitiesToUpdate.add(opp);
+            }
         }
         
         if (!opportunitiesToUpdate.isEmpty()) {
