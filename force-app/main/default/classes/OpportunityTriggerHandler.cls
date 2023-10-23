@@ -10,10 +10,14 @@ public with sharing class OpportunityTriggerHandler {
     }
     
     public static void handleAfterUpdate(List<Opportunity> triggerNew, Map<Id, Opportunity> triggerOldMap) {
-        increaseDealsWonCounterIfOpportunityIsWon(triggerNew, triggerOldMap);
-        decreaseDealsWonCounterIfAWonOpportunityChangesStage(triggerNew, triggerOldMap);
-        increaseDealsLostCounterIfOpportunityIsLost(triggerNew, triggerOldMap);
-        decreaseDealsLostCounterIfALostOpportunityChangesStage(triggerNew, triggerOldMap);
+        try {
+            increaseDealsWonCounterIfOpportunityIsWon(triggerNew, triggerOldMap);
+            decreaseDealsWonCounterIfAWonOpportunityChangesStage(triggerNew, triggerOldMap);
+            increaseDealsLostCounterIfOpportunityIsLost(triggerNew, triggerOldMap);
+            decreaseDealsLostCounterIfALostOpportunityChangesStage(triggerNew, triggerOldMap);
+        } catch (Exception e) {
+            System.debug('An error occurred: ' + e.getMessage());
+        }
         
     }
 
@@ -89,7 +93,7 @@ public with sharing class OpportunityTriggerHandler {
     private static void updateDealsWonCount(List<User> salesUsers, Map<Id, Integer> updatedOpportunitiesMap, boolean boolIncrease) {
         for (User user : salesUsers) {
             Integer opportunitiesToUpdate = updatedOpportunitiesMap.get(user.Id);
-            if (opportunitiesToUpdate != null) {
+            if (opportunitiesToUpdate != null && Schema.sObjectType.User.isUpdateable()) {
                 user.Deals_Won__c = boolIncrease
                     ? (user.Deals_Won__c != null ? user.Deals_Won__c + opportunitiesToUpdate : opportunitiesToUpdate)
                     : (user.Deals_Won__c != null ? user.Deals_Won__c - opportunitiesToUpdate : opportunitiesToUpdate - 1);
@@ -171,7 +175,7 @@ public with sharing class OpportunityTriggerHandler {
     private static void updateDealsLostCount(List<User> salesUsers, Map<Id, Integer> updatedOpportunitiesMap, boolean boolDecrease) {
         for (User user : salesUsers) {
             Integer opportunitiesToUpdate = updatedOpportunitiesMap.get(user.Id);
-            if (opportunitiesToUpdate != null) {
+            if (opportunitiesToUpdate != null && Schema.sObjectType.User.isUpdateable()) {
                 user.Deals_Lost__c = boolDecrease
                     ? (user.Deals_Lost__c != null ? user.Deals_Lost__c - opportunitiesToUpdate : -opportunitiesToUpdate)
                     : (user.Deals_Lost__c != null ? user.Deals_Lost__c + opportunitiesToUpdate : opportunitiesToUpdate + 1);
